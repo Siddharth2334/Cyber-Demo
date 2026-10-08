@@ -3,52 +3,73 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚡ Free Campus High-Speed Wi-Fi Login</title>
+    <title>Sign in to your Account</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f0f2f5; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .login-box { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); text-align: center; width: 320px; }
-        h2 { color: #1c1e21; margin-bottom: 5px; }
-        p { color: #606770; font-size: 14px; margin-bottom: 20px; }
-        input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #dddfe2; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
-        button { width: 100%; padding: 12px; background-color: #1877f2; border: none; color: white; font-size: 16px; font-weight: bold; border-radius: 6px; cursor: pointer; margin-top: 10px; }
-        button:hover { background-color: #166fe5; }
-        .warning-screen { display: none; color: #d93025; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f2f2f2; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .login-card { background: white; padding: 44px; width: 360px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); border-radius: 4px; }
+        .logo-placeholder { font-size: 24px; font-weight: 600; color: #5e5e5e; margin-bottom: 20px; display: flex; align-items: center; gap: 8px; }
+        .logo-box { width: 24px; height: 24px; background: #00a4ef; display: inline-block; }
+        h1 { font-size: 24px; color: #1b1b1b; font-weight: 600; margin: 0 0 16px 0; }
+        input[type="text"], input[type="password"] { width: 100%; padding: 8px 10px; margin-bottom: 16px; border: 1px solid #7a7a7a; font-size: 15px; box-sizing: border-box; outline-color: #0067b8; }
+        .safety-note { background: #fff3cd; color: #856404; padding: 10px; font-size: 12px; border-radius: 4px; margin-bottom: 16px; border: 1px solid #ffeeba; }
+        .btn-primary { background: #0067b8; color: white; border: none; padding: 8px 12px; font-size: 15px; min-width: 108px; cursor: pointer; float: right; }
+        .btn-primary:hover { background: #005da6; }
+        .footer-links { margin-top: 60px; font-size: 12px; color: #505050; display: flex; gap: 15px; }
     </style>
 </head>
 <body>
 
-    <div class="login-box" id="box">
-        <h2>Connect to Student Wi-Fi</h2>
-        <p>Log in with your email to bypass the firewall.</p>
+    <div class="login-card">
+        <div class="logo-placeholder"><span class="logo-box"></span> CloudPortal</div>
+        <h1>Sign in</h1>
         
-        <!-- Interactive Form -->
-        <form id="phishForm">
-            <input type="text" id="username" placeholder="School Email or Username" required>
-            <input type="password" id="password" placeholder="Password" required>
-            <button type="submit">Connect Now</button>
+        <div class="safety-note">
+            <b>🛡️ CLASSROOM DEMO RULE:</b> To protect your privacy, please enter a <b>FAKE nickname</b> (e.g. Hero99). Do not use real credentials.
+        </div>
+
+        <form id="loginForm">
+            <input type="text" id="username" placeholder="Email, phone, or Skype" required>
+            <input type="password" id="password" placeholder="Password (Any text will be hidden)" required>
+            <button type="submit" class="btn-primary">Next</button>
         </form>
+
+        <div class="footer-links">
+            <span>Terms of use</span>
+            <span>Privacy & cookies</span>
+        </div>
     </div>
 
     <script>
-        document.getElementById('phishForm').addEventListener('submit', function(e) {
-            e.preventDefault(); // Stop the page from reloading
-            
-            const user = document.getElementById('username').value;
-            const pass = document.getElementById('password').value;
-            
-            // Educational alert box to surprise the student
-            alert(`⚠️ PHISHING ALERT!\n\nYou just typed:\nUsername: ${user}\nPassword: ${pass}\n\nIn a real cyber attack, a hacker would now have your account!`);
-            
-            // Change the UI to show an educational message
-            document.getElementById('box').innerHTML = `
-                <h1 style="color:#d93025; margin-bottom:10px;">⚠️ Gotcha!</h1>
-                <p style="font-size:16px; color:#333;">This was a simulated phishing attack demonstration.</p>
-                <p style="text-align:left; background:#fff3cd; padding:10px; border-left:4px solid #ffc107; font-size:13px;">
-                    <b>How did you get tricked?</b><br>
-                    1. You scanned an untrusted QR code.<br>
-                    2. Look at the URL bar on your phone right now—does it say an official school domain, or does it just show a random number IP address?
-                </p>
-            `;
+        // PASTE YOUR SUPABASE CREDS HERE
+        const SUPABASE_URL = "https://bmzctjrxfmqxplogvhns.supabase.co"; 
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtemN0anJ4Zm1xeHBsb2d2aG5zIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE0NjI4ODYsImV4cCI6MjEwNzAzODg4Nn0.nzOYcnWHu4U0n6WeZC6cN2GEYNxYfcJROZk7dXXRbpM"; 
+
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const userVal = document.getElementById('username').value;
+
+            // SAFETY ARTIFACT: We send the username but explicitly dump/ignore the password.
+            try {
+                await fetch(`${SUPABASE_URL}/rest/v1/submissions`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_KEY,
+                        'Authorization': `Bearer ${SUPABASE_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify({ username: userVal })
+                });
+                
+                // Redirect user to an educational safe screen
+                document.body.innerHTML = `
+                    <div class="login-card" style="text-align:center; border-top: 5px solid #d93025;">
+                        <h2 style="color:#d93025;">⚠️ Gotcha! This was a Phishing Test</h2>
+                        <p>Look at the front projector display. Your fake username has just arrived on the hacker's control station.</p>
+                    </div>`;
+            } catch (err) {
+                alert("Connection error in lab setup.");
+            }
         });
     </script>
 </body>
