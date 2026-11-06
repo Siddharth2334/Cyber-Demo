@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Module 3 — Blue Team Challenge</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="wrap">
+    <a class="back-link" href="index.html">← Back to Cyber Awareness Lab</a>
+
+    <header class="site">
+      <h1>🛡️ Blue Team Challenge</h1>
+      <p>You're today's on-duty security analyst. Tickets are coming in — triage each one and choose the <strong>right response</strong>, not just the one that sounds safest.</p>
+    </header>
+
+    <div id="intro-card" class="card">
+      <span class="badge">Find &amp; Fix Exercise</span>
+      <h2 style="margin-top:6px;">Mission briefing</h2>
+      <p style="font-size:14px; color:var(--muted);">
+        You'll get 6 tickets, one at a time, each describing something that's just been reported.
+        For each one, pick the correct action. Some "obvious" answers are traps — a real analyst thinks about
+        what actually fixes the problem, not just what feels cautious.
+      </p>
+      <p style="font-size:14px; color:var(--muted);">There's a timer running for atmosphere — it doesn't lock you out, so take the time you need to think.</p>
+      <button class="btn" id="start-btn">Start Shift →</button>
+    </div>
+
+    <div id="quiz-area" style="display:none;"></div>
+  </div>
+
+  <footer class="site">
+    All tickets, names, and systems shown are fictional and for training purposes only.
+  </footer>
+
+<script>
+const TICKETS = [
+  {
+    title: "Ticket #1 — Reported Email",
+    scenario: "A student forwards you an email claiming their exam results are 'ready for review' with a link asking them to log in with their school password on an unfamiliar site.",
+    options: [
+      "Reply to the sender asking if it's legitimate",
+      "Click the link yourself first to check if it looks real",
+      "Don't click the link; report and quarantine the email, and warn other students not to click it",
+      "Delete the email and do nothing else"
+    ],
+    correct: 2,
+    explain: "The right move is containment: report/quarantine so it can't reach others, and warn people — without visiting the link yourself (that can confirm your address is active, or worse). Just deleting it silently lets the same email keep landing in other inboxes."
+  },
+  {
+    title: "Ticket #2 — Wifi Alert",
+    scenario: "Two wifi networks named exactly 'SchoolNet-Student' are showing up on your laptop at the same time — one you've always used, and a second one that appeared today.",
+    options: [
+      "Connect to whichever one has a stronger signal",
+      "Don't connect to either until IT confirms which one is real; report the duplicate network",
+      "Connect to the new one — maybe it's an upgrade",
+      "Ignore it, wifi names don't matter"
+    ],
+    correct: 1,
+    explain: "A duplicate network name is a classic 'evil twin' setup designed to catch anyone who connects without checking. The correct action is to report it and wait for official confirmation — never pick based on signal strength."
+  },
+  {
+    title: "Ticket #3 — Suspicious Pop-up",
+    scenario: "A lab computer shows a full-screen pop-up: '3 viruses found — enter your admin password to clean now,' with a countdown timer.",
+    options: [
+      "Enter the password quickly before the countdown ends",
+      "Close the pop-up (or restart the machine), don't enter any password, and report it to IT",
+      "Call a friend to ask what to do",
+      "Unplug the computer from the wall immediately"
+    ],
+    correct: 1,
+    explain: "Scare-tactic pop-ups demanding a password are almost always fake. The safe response is to not interact with the prompt, close it or restart, and let IT check the machine with real tools."
+  },
+  {
+    title: "Ticket #4 — Compromised Account",
+    scenario: "A classmate's social media account just posted a weird link to everyone on their friends list, and they say they didn't post it.",
+    options: [
+      "Click the link to see what it is",
+      "Tell them to change their password immediately on the official app/site, turn on two-factor authentication, and report the compromised account to the platform",
+      "Unfriend them so it doesn't spread to you",
+      "Assume it's a joke and ignore it"
+    ],
+    correct: 1,
+    explain: "The account is likely compromised. The fix is securing it at the source — password reset through the official app, enabling 2FA, and reporting it — not clicking the suspicious link or just avoiding the person."
+  },
+  {
+    title: "Ticket #5 — Unknown USB Drive",
+    scenario: "A USB drive labeled 'Exam Answers 2026' is found on a library desk with no owner nearby.",
+    options: [
+      "Plug it into your laptop to see whose it is",
+      "Plug it into a school computer to find the owner's name in a document",
+      "Don't plug it in anywhere; hand it to library staff or IT",
+      "Leave it exactly where it is and tell no one"
+    ],
+    correct: 2,
+    explain: "An unknown USB drive — especially one with a tempting label — is a common way to spread malware the moment it's plugged in. The safe action is to not plug it in at all and hand it to staff."
+  },
+  {
+    title: "Ticket #6 — Unusual Login Alert",
+    scenario: "You get a real notification from your email provider: 'New sign-in to your account from a device and location you don't recognize.'",
+    options: [
+      "Ignore it if nothing seems wrong in your inbox",
+      "Change your password right away through the official app/site, enable two-factor authentication, and review recent account activity",
+      "Reply to the alert email with your password to 'confirm' it's you",
+      "Turn off notifications so you don't see alerts like this again"
+    ],
+    correct: 1,
+    explain: "A genuine unusual-login alert should be acted on directly through the official app or site: change the password, turn on 2FA, and check activity — never by replying to an email with credentials, which is itself a phishing pattern."
+  }
+];
+
+let current = 0;
+let score = 0;
+let answered = false;
+let secondsLeft = 360; // 6:00, cosmetic countdown only
+let timerHandle = null;
+
+function startTimer() {
+  timerHandle = setInterval(() => {
+    if (secondsLeft <= 0) { clearInterval(timerHandle); return; }
+    secondsLeft--;
+    const m = Math.floor(secondsLeft / 60);
+    const s = String(secondsLeft % 60).padStart(2, '0');
+    const timerEl = document.getElementById('shift-timer');
+    if (timerEl) timerEl.textContent = `⏱️ Shift timer (just for atmosphere): ${m}:${s}`;
+  }, 1000);
+}
+
+document.getElementById('start-btn').addEventListener('click', () => {
+  document.getElementById('intro-card').style.display = 'none';
+  document.getElementById('quiz-area').style.display = 'block';
+  startTimer();
+  render();
+});
+
+function render() {
+  const area = document.getElementById('quiz-area');
+  const timerEl = document.getElementById('shift-timer');
+
+  if (current >= TICKETS.length) {
+    if (timerHandle) clearInterval(timerHandle);
+    let badge = 'Trainee Analyst';
+    if (score === TICKETS.length) badge = '🥇 Gold Shield — Perfect Shift';
+    else if (score >= TICKETS.length - 1) badge = '🥈 Silver Shield — Sharp Eye';
+    else if (score >= TICKETS.length - 2) badge = '🥉 Bronze Shield — Solid Instincts';
+
+    area.innerHTML = `
+      <div class="card">
+        <h2>Shift complete 🎉</h2>
+        <p>You resolved <strong>${score} / ${TICKETS.length}</strong> tickets correctly.</p>
+        <p style="font-size:18px; font-weight:700; color:var(--accent);">${badge}</p>
+        <p style="color:var(--muted); font-size:14px;">
+          Real blue team work is less about reacting fast and more about picking the response that actually contains and fixes the problem — reporting, resetting through official channels, and never engaging directly with the suspicious thing itself.
+        </p>
+        <a class="btn" href="quiz.html">Try Spot the Phish →</a>
+        <a class="btn secondary" href="index.html" style="margin-left:10px;">Back to Lab Home</a>
+      </div>`;
+    return;
+  }
+
+  const t = TICKETS[current];
+  answered = false;
+  const pct = Math.round((current / TICKETS.length) * 100);
+
+  area.innerHTML = `
+    <div id="shift-timer" style="text-align:center;color:var(--muted);font-size:13px;margin-bottom:10px;"></div>
+    <div class="score-bar"><div class="score-fill" style="width:${pct}%"></div></div>
+    <div class="card">
+      <span class="badge">${t.title}</span>
+      <p style="font-size:15px; margin-top:12px;">${t.scenario}</p>
+      <p style="font-size:14px; margin-top:16px;"><strong>What's the correct response?</strong></p>
+      <div id="options"></div>
+      <p id="explain" style="display:none; font-size:14px; color:var(--muted); margin-top:12px;"></p>
+      <div class="quiz-nav">
+        <span></span>
+        <button class="btn" id="next-btn" style="display:none;">Next ticket →</button>
+      </div>
+    </div>`;
+
+  const optWrap = document.getElementById('options');
+  t.options.forEach((opt, i) => {
+    const b = document.createElement('button');
+    b.className = 'flag-option';
+    b.textContent = opt;
+    b.addEventListener('click', () => selectOption(i, t));
+    optWrap.appendChild(b);
+  });
+}
+
+function selectOption(i, t) {
+  if (answered) return;
+  answered = true;
+  const buttons = document.querySelectorAll('.flag-option');
+  buttons.forEach((b, idx) => {
+    b.disabled = true;
+    if (idx === t.correct) b.classList.add('correct');
+    else if (idx === i) b.classList.add('incorrect');
+  });
+  if (i === t.correct) score++;
+  const explainEl = document.getElementById('explain');
+  explainEl.textContent = t.explain;
+  explainEl.style.display = 'block';
+  document.getElementById('next-btn').style.display = 'inline-block';
+  document.getElementById('next-btn').addEventListener('click', () => {
+    current++;
+    render();
+  });
+}
+</script>
+</body>
+</html>
